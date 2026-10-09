@@ -1,0 +1,72 @@
+[
+  {
+    "file": "fedsgd_cnn_fashion_mnist.yaml",
+    "trials": 7,
+    "config_errors": [],
+    "runtime_checks": [
+      "aggregator tensor execution: Mean",
+      "aggregator tensor execution: Clippedclustering",
+      "aggregator tensor execution: GeoMed",
+      "aggregator tensor execution: DnC",
+      "aggregator tensor execution: Signguard",
+      "aggregator tensor execution: Multikrum",
+      "aggregator tensor execution: Centeredclipping",
+      "model forward and backward: FashionCNN"
+    ]
+  },
+  {
+    "file": "fedsgd_cnn_fashion_mnist_noniid.yaml",
+    "trials": 21,
+    "config_errors": [],
+    "runtime_checks": []
+  },
+  {
+    "file": "fedsgd_mlp_mnist.yaml",
+    "trials": 7,
+    "config_errors": [],
+    "runtime_checks": [
+      "model forward and backward: MLP"
+    ]
+  },
+  {
+    "file": "fedsgd_mlp_mnist_noniid.yaml",
+    "trials": 2,
+    "config_errors": [
+      "aggregator MCA: ValueError",
+      "aggregator FedCut: ValueError"
+    ],
+    "runtime_checks": []
+  },
+  {
+    "file": "fedsgd_resnet_cifar10.yaml",
+    "trials": 1,
+    "config_errors": [],
+    "runtime_checks": [
+      "model forward and backward: ResNet"
+    ]
+  },
+  {
+    "file": "fedsgd_resnet_cifar10_noiid.yaml",
+    "trials": 1,
+    "config_errors": [],
+    "runtime_checks": []
+  },
+  {
+    "file": "fedsgd_textcnn_agnews.yaml",
+    "trials": 1,
+    "config_errors": [
+      "dataset: ValueError: Unknown dataset: AGNews",
+      "model: NotImplementedError: "
+    ],
+    "runtime_checks": []
+  },
+  {
+    "file": "fedsgd_textrnn_agnews.yaml",
+    "trials": 1,
+    "config_errors": [
+      "dataset: ValueError: Unknown dataset: AGNews",
+      "model: UnboundLocalError: cannot access local variable 'model' where it is not associated with a value"
+    ],
+    "runtime_checks": []
+  }
+]

@@ -1,0 +1,70 @@
+[tool.poetry]
+name = "BladesALL"
+version = "0.4.0"
+description = "Unified Byzantine attacks, robust aggregation, and federated learning in one editable Python package."
+authors = ["Shenghui Li <shenghui.li@it.uu.se>"]
+license = "Apache-2.0"
+readme = "README.md"
+packages = [{ include = "blades" }]
+keywords = ["pytorch", "federated-learning", "byzantine-robustness"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
+]
+include = [
+    { path = "blades/tuned_examples/*.yaml", format = ["sdist", "wheel"] },
+    { path = "blades/new_examples/*.yaml", format = ["sdist", "wheel"] },
+    { path = "blades/config_examples/**/*.yaml", format = ["sdist", "wheel"] },
+    { path = "LICENSE.fedlib", format = ["sdist", "wheel"] },
+    { path = "examples", format = "sdist" },
+    { path = "tests", format = "sdist" },
+    { path = "docs/source", format = "sdist" },
+    { path = "docs/requirements.txt", format = "sdist" },
+]
+exclude = ["**/__pycache__/**", "**/*.pyc", "**/.ipynb_checkpoints/**"]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.13"
+torch = ">=2.7.1,<3"
+torchvision = ">=0.22.1,<0.23"
+torchaudio = ">=2.7.1,<3"
+ray = { version = "2.39.0", extras = ["rllib", "tune"] }
+numpy = ">=1.23"
+requests = "^2.27.1"
+setuptools = "*"
+tqdm = "*"
+wandb = "^0.17"
+dm-tree = "*"
+torchmetrics = "*"
+datasets = "*"
+typer = "*"
+PyYAML = ">=6"
+rich = "*"
+scikit-learn = "*"
+matplotlib = { version = "*", optional = true }
+pytest = { version = ">=7", optional = true }
+pytest-xdist = { version = "*", optional = true }
+build = { version = ">=1", optional = true }
+
+[tool.poetry.extras]
+dev = ["pytest", "pytest-xdist", "build"]
+examples = ["matplotlib"]
+
+[tool.poetry.scripts]
+blades = "blades.train:main"
+bladesall = "blades.train:main"
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+skip = ["__init__.py"]

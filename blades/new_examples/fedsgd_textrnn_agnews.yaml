@@ -1,0 +1,76 @@
+fedavg_blades:
+  run: FEDAVG
+  stop:
+    training_iteration: 2000
+
+  config:
+    random_seed:
+      grid_search: [111]
+    dataset_config:
+      type: AGNews  # 切换为AG-News数据集
+      num_clients: 20
+      num_classes: 4  # AG-News有4个类别（世界、体育、商业、科技）
+      train_batch_size: 64
+      partitioner_config:
+        type: IIDPartitioner  # 保持IID划分，如需Non-IID可换为DirichletPartitioner
+        num_clients: 20
+
+    evaluation_interval: 50
+
+    num_remote_workers: 0
+    num_gpus_per_worker: 0.3
+    num_cpus_per_worker: 0
+    num_cpus_for_driver: 2
+    num_gpus_for_driver: 0.3
+
+    global_model: textrnn  # 切换为TextRNN模型
+    model_config:  # TextRNN模型专属参数
+      vocab_size: 30000  # AG-News词汇表大小（可根据实际预处理调整）
+      embedding_dim: 128  # 词嵌入维度
+      hidden_dim: 256  # LSTM隐藏层维度
+      num_layers: 2  # LSTM层数
+      bidirectional: True  # 是否使用双向LSTM
+
+    client_config:
+      lr: 0.01  # 文本任务学习率通常较小，可根据实际调优
+      momentum:
+        grid_search: [0.0]
+
+    server_config:
+      aggregator:
+        grid_search: [
+          type: Mean,
+          # type: Clippedclustering,
+          # type: Median,
+          # type: GeoMed,
+          # type: DnC,
+          # type: Trimmedmean,
+          # type: Signguard,
+          # type: Multikrum,
+          # type: Centeredclipping,
+          # type: MCA,
+          # type: FedCut
+        ]
+
+      optimizer:
+        type: SGD
+        lr: 0.005
+        lr_schedule: [[0, 0.005], [1500, 0.005], [1501, 0.0005], [2000, 0.0005]]
+        momentum:
+          grid_search: [0.0]
+
+    num_malicious_clients:
+      # grid_search: [1, 2, 3, 4, 5, 6]
+      grid_search: [0]
+
+    adversary_config:
+      grid_search:
+        - type: blades.adversaries.ALIEAdversary
+        # - type: blades.adversaries.LabelFlipAdversary
+        # - type: blades.adversaries.NoiseAdversary
+        # - type: blades.adversaries.SignFlipAdversary
+        # - type: blades.adversaries.IPMAdversary
+        #   scale: 0.1
+        # - type: blades.adversaries.IPMAdversary
+        #   scale: 100
+        # - type: blades.adversaries.MinMaxAdversary

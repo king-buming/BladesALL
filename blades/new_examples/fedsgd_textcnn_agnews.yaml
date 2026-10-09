@@ -1,0 +1,84 @@
+fedavg_blades:
+  run: FEDAVG
+  stop:
+    training_iteration: 2000
+
+  config:
+    random_seed:
+      grid_search: [111]
+    dataset_config:
+      type: AGNews  # 保持AG-News数据集
+      num_clients: 20
+      num_classes: 4  # 维持4分类
+      train_batch_size: 64
+      partitioner_config:
+        type: IIDPartitioner  # 可切换为DirichletPartitioner（Non-IID）
+        num_clients: 20
+
+    evaluation_interval: 50
+
+    num_remote_workers: 0
+    num_gpus_per_worker: 0.3
+    num_cpus_per_worker: 0
+    num_cpus_for_driver: 2
+    num_gpus_for_driver: 0.3
+
+    global_model:
+      texttnn:  # 模型名称直接作为键，替代原有的type字段
+        vocab_size: 30000
+        embedding_dim: 128
+        num_filters: 100
+        filter_sizes: [3,4,5]
+        dropout: 0.5
+        use_agnews: true
+
+  # global_model: texttnn # 合并model_config参数到global_model字典中
+  #   type: texttnn  # 模型类型（对应TextTNN）
+  #   vocab_size: 30000  # 词表大小（必传参数）
+  #   embedding_dim: 128  # 词嵌入维度
+  #   num_filters: 100  # 每个卷积核尺寸的输出通道数
+  #   filter_sizes: [3, 4, 5]  # 多尺度卷积核
+  #   dropout: 0.5  # dropout概率
+
+    client_config:
+      lr: 0.1  # 文本任务学习率，与TextRNN保持一致
+      momentum:
+        grid_search: [0.0]
+
+    server_config:
+      aggregator:
+        grid_search: [
+          type: Mean,
+          # type: Clippedclustering,
+          # type: Median,
+          # type: GeoMed,
+          # type: DnC,
+          # type: Trimmedmean,
+          # type: Signguard,
+          # type: Multikrum,
+          # type: Centeredclipping,
+          # type: MCA,
+          # type: FedCut
+        ]
+
+      optimizer:
+        type: SGD
+        lr: 0.05
+        lr_schedule: [[0, 0.05], [1500, 0.05], [1501, 0.005], [2000, 0.005]]
+        momentum:
+          grid_search: [0.0]
+
+    num_malicious_clients:
+      grid_search: [0]
+
+    adversary_config:
+      grid_search:
+        - type: blades.adversaries.ALIEAdversary
+        # - type: blades.adversaries.LabelFlipAdversary
+        # - type: blades.adversaries.NoiseAdversary
+        # - type: blades.adversaries.SignFlipAdversary
+        # - type: blades.adversaries.IPMAdversary
+        #   scale: 0.1
+        # - type: blades.adversaries.IPMAdversary
+        #   scale: 100
+        # - type: blades.adversaries.MinMaxAdversary
