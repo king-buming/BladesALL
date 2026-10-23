@@ -8,15 +8,15 @@ if TYPE_CHECKING:
 
 
 def _import_fedavg():
-    import blades.algorithms.fedavg as fedavg
+    from blades.trainers.fedavg import Fedavg
 
-    return fedavg.Fedavg, fedavg.Fedavg.get_default_config()
+    return Fedavg, Fedavg.get_default_config()
 
 
 def _import_fedavgdp():
-    import blades.algorithms.fedavg as fedavg
+    from blades.trainers.fedavg import FedavgDP
 
-    return fedavg.FedavgDP, fedavg.FedavgDP.get_default_config()
+    return FedavgDP, FedavgDP.get_default_config()
 
 
 def _import_fedavg_base():

@@ -2,31 +2,20 @@ from collections import defaultdict
 from typing import Dict
 
 import numpy as np
+from ray.rllib.utils import force_list
 from ray.rllib.utils.annotations import override
 from ray.rllib.utils.debug import update_global_seed_if_necessary
-from ray.util.timer import _Timer
+from ray.rllib.utils.from_config import from_config
 
-from blades.trainers import Trainer, TrainerConfig, TrainerCallback, TrainerCallbackList
+from blades.trainers.trainer import Trainer
+from blades.trainers.trainer_config import TrainerConfig
+from blades.trainers.callbacks import TrainerCallbackList
 from blades.clients import ClientConfig
 from blades.constants import CLIENT_UPDATE, NUM_GLOBAL_STEPS, TRAIN_LOSS
 from blades.core import WorkerGroupConfig, WorkerGroup, ClientWorkerGroup
 from blades.datasets import DatasetCatalog
 from blades.utils.types import PartialAlgorithmConfigDict
-
-
-class FedavgCallback(TrainerCallback):
-    def on_local_round_end(
-        self,
-        trainer: "FedavgTrainer",
-    ):
-        """Called when the local round ends."""
-
-
-class FedavgTrainerCallbackList(TrainerCallbackList):
-    def on_local_round_end(self, trainer: "FedavgTrainer"):
-        """Called when the local round ends."""
-        for callback in self._callbacks:
-            callback.on_local_round_end(trainer)
+from .callbacks import FedavgCallback, FedavgTrainerCallbackList
 
 
 class FedavgTrainerConfig(TrainerConfig):
@@ -37,9 +26,6 @@ class FedavgTrainerConfig(TrainerConfig):
         self.num_malicious_clients = 0
 
         self.callbacks_config = FedavgCallback
-
-    def callbacks(self, callbacks_class) -> TrainerConfig:
-        return super().callbacks(callbacks_class)
 
     def get_client_config(self) -> ClientConfig:
         config = ClientConfig(class_specifier="blades.clients.Client").update_from_dict(
@@ -67,11 +53,18 @@ class FedavgTrainerConfig(TrainerConfig):
 
     @override(TrainerConfig)
     def build_callbacks(self, callbacllist_cls=None) -> TrainerCallbackList:
-        return super().build_callbacks(callbacllist_cls or FedavgTrainerCallbackList)
+        if not self._is_frozen:
+            raise ValueError(
+                "Cannot call `build_callbacks()` on an unfrozen "
+                "TrainerConfig! Please call `freeze()` first."
+            )
+        callback_list_cls = callbacllist_cls or FedavgTrainerCallbackList
+        callbacks = [from_config(spec) for spec in self._get_callback_specs()]
+        return callback_list_cls(callbacks)
 
-    @override(TrainerConfig)
-    def validate(self) -> None:
-        super().validate()
+    def _get_callback_specs(self) -> list:
+        """Return a fresh list so variants can add callbacks without mutating config."""
+        return list(force_list(self.callbacks_config))
 
 
 class FedavgTrainer(Trainer):
@@ -83,7 +76,7 @@ class FedavgTrainer(Trainer):
 
     @classmethod
     def get_default_config(cls) -> TrainerConfig:
-        return FedavgTrainerConfig()
+        return FedavgTrainerConfig(algo_class=cls)
 
     def setup(self, config: TrainerConfig):
         # Set up our config: Merge the user-supplied config dict (which could
@@ -113,7 +106,6 @@ class FedavgTrainer(Trainer):
         )
 
         # Metrics-related properties.
-        self._timers = defaultdict(_Timer)
         self._counters = defaultdict(int)
         self.global_vars = defaultdict(lambda: defaultdict(list))
 
@@ -183,9 +175,11 @@ class FedavgTrainer(Trainer):
             return client.evaluate(test_loader)
 
         evaluate_results = self.worker_group.foreach_execution(validate_func, clients)
-        results = self.server.task.compile_eval_results(evaluate_results)
+        return self._compile_eval_results(evaluate_results)
 
-        return results
+    def _compile_eval_results(self, results):
+        """Let the configured Task aggregate its evaluation metrics."""
+        return self.server.task.compile_eval_results(results)
 
     def save_checkpoint(self, checkpoint_dir: str) -> Dict | None:
         pass

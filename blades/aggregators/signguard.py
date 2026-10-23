@@ -1,3 +1,4 @@
+import warnings
 from typing import List
 
 import numpy as np
@@ -8,18 +9,30 @@ from blades.utils import torch_utils
 from .aggregators import Mean, Median
 
 
+_UNSET = object()
+
+
 class Signguard(object):
     r"""A robust aggregator from paper `"SignGuard: Byzantine-robust Federated
     Learning through Collaborative Malicious Gradient Filtering" <https://arxiv.org/abs/2109.05872>`_.
     """
 
-    def __init__(self, agg="mean", max_tau=1e5, linkage="average") -> None:
+    def __init__(self, agg="mean", max_tau=_UNSET, linkage=_UNSET) -> None:
         super(Signguard, self).__init__()
 
-        assert linkage in ["average", "single"]
-        self.tau = max_tau
-        self.linkage = linkage
-        self.l2norm_his = []
+        if linkage is not _UNSET:
+            assert linkage in ["average", "single"]
+        unused_parameters = [
+            name for name, value in (("max_tau", max_tau), ("linkage", linkage))
+            if value is not _UNSET
+        ]
+        if unused_parameters:
+            warnings.warn(
+                f"Signguard parameters {', '.join(unused_parameters)} have no effect "
+                "and are deprecated; they will be removed in a future release.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         if agg == "mean":
             self.agg = Mean()
         elif agg == "median":

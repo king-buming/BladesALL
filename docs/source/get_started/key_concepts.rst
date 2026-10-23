@@ -20,13 +20,18 @@ The unified registry supports these YAML ``run`` values:
    * - Value
      - Implementation
    * - ``FEDAVG``
-     - Attack-aware ``blades.algorithms.fedavg.Fedavg``
+     - Attack-aware ``blades.trainers.fedavg.Fedavg``
    * - ``FEDAVG_BASE``
      - Basic ``blades.trainers.FedavgTrainer``
    * - ``FEDAVG_DP``
-     - ``blades.algorithms.fedavg.FedavgDP``
+     - ``blades.trainers.fedavg.FedavgDP``
    * - ``FEDPROX``
      - ``blades.trainers.FedProxTrainer``
+
+The historical ``blades.algorithms.fedavg`` imports remain aliases of the
+classes in ``blades.trainers.fedavg``. Attack callbacks run after client
+training and before aggregation. Each callback build creates a new list
+without appending to the stored configuration.
 
 Configuration may resolve classes by dotted import paths. Use the local
 namespace, for example ``blades.adversaries.SPEARAdversary`` or

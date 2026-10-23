@@ -1,8 +1,6 @@
-import random
 
 import torch
 
-from blades.aggregators import Signguard
 from blades.trainers import Trainer as Algorithm
 from blades.constants import CLIENT_UPDATE, CLIENT_ID
 from .adversary import Adversary

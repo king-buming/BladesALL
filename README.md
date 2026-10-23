@@ -81,7 +81,8 @@ blades file blades/tuned_examples/fedsgd_cnn_fashion_mnist.yaml
 | Datasets & partitioners | [`blades/datasets/`](blades/datasets/) |
 | Models | [`blades/models/`](blades/models/) |
 | Trainers, server & callbacks | [`blades/trainers/`](blades/trainers/) |
-| FedAvg / DP-FedAvg algorithms | [`blades/algorithms/`](blades/algorithms/) |
+| FedAvg / DP-FedAvg implementations | [`blades/trainers/fedavg/`](blades/trainers/fedavg/) |
+| Algorithm registry & compatible imports | [`blades/algorithms/`](blades/algorithms/) |
 | Clients, tasks & execution core | [`blades/clients/`](blades/clients/), [`blades/core/`](blades/core/) |
 | Experiment configs | [`blades/tuned_examples/`](blades/tuned_examples/), [`blades/new_examples/`](blades/new_examples/) |
 
@@ -161,6 +162,9 @@ python -m sphinx -b html docs/source docs/_build/html
 ```
 
 > **中文说明**：部分历史实验、测试与 notebook 沿用旧接口，应以本项目的 `examples/smoke_train` 与当前 YAML 配置类为准。合并细节见 [docs/MIGRATION.md](docs/MIGRATION.md)。
+
+冗余代码清理和旧配置接口的迁移方式见 [docs/CLEANUP.md](docs/CLEANUP.md)。
+FedAvg 基础版、攻击版与 DP 版本的统一结构见 [docs/FEDAVG_UNIFICATION.md](docs/FEDAVG_UNIFICATION.md)。
 
 ## Citation
 

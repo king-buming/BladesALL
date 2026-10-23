@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import warnings
 from unittest.mock import patch
 
 
@@ -38,11 +39,32 @@ class CommandLineTests(unittest.TestCase):
                 ray_num_nodes=None, ray_num_cpus=1, ray_num_gpus=0,
                 ray_object_store_memory=None, ray_ui=False, ray_address=None,
                 local_mode=False, resume=False, scheduler="FIFO",
-                scheduler_config="{}", algo="FEDAVG", wandb_key=None,
+                scheduler_config="{}", wandb_key=None,
             )
 
+    def test_legacy_options_warn_without_overriding_experiment_algorithm(self):
+        from blades.train import run_blades_experiments
+
+        experiments = {"example": {"run": "FEDAVG", "config": {}}}
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            with patch("blades.train.ray.init"), patch(
+                "blades.train.ray.shutdown"
+            ), patch("blades.train.run_experiments", return_value=[]) as run_experiments:
+                run_blades_experiments(
+                    experiments=experiments, v=False, vv=False, trace=True,
+                    ray_num_nodes=None, ray_num_cpus=1, ray_num_gpus=0,
+                    ray_object_store_memory=None, ray_ui=False, ray_address=None,
+                    local_mode=False, resume=False, scheduler="FIFO",
+                    scheduler_config="{}", algo="FEDPROX", wandb_key=None,
+                )
+        messages = [str(item.message) for item in caught]
+        self.assertTrue(any("--trace is deprecated" in item for item in messages))
+        self.assertTrue(any("algo=..." in item for item in messages))
+        self.assertEqual(run_experiments.call_args.args[0]["example"]["run"], "FEDAVG")
+
     def test_python_config_resolves_configured_trainer(self):
-        import torch  # Initialize native libraries before Ray on Windows.
+        import torch  # noqa: F401 - Initialize native libraries before Ray on Windows.
         from blades.algorithms.fedavg import Fedavg
         from blades.train import SupportedFileType, load_experiments_from_file
 

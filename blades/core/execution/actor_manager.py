@@ -1,26 +1,13 @@
 from typing import Any, Callable, Optional, List
 
-import ray
 from ray.actor import ActorHandle
 from ray.rllib.utils.actor_manager import FaultTolerantActorManager
 
+from blades.utils.actor_pool import ActorPool
 
-class _ActorPool(ray.util.ActorPool):
-    def submit(self, fn, value, affinity_actors=None):
-        if affinity_actors is None:
-            return super().submit(fn, value)
 
-        for actor in affinity_actors:
-            if actor in self._idle_actors:
-                future = fn(actor, value)
-                future_key = tuple(future) if isinstance(future, list) else future
-                self._future_to_actor[future_key] = (self._next_task_index, actor)
-                self._index_to_future[self._next_task_index] = future
-                self._next_task_index += 1
-                return None
-
-        self._pending_submits.append((fn, value, affinity_actors))
-        return None
+# Historical private import path; both entry points share one implementation.
+_ActorPool = ActorPool
 
 
 class ActorManager(FaultTolerantActorManager):
@@ -36,15 +23,10 @@ class ActorManager(FaultTolerantActorManager):
             init_id,
         )
 
-        self._actor_pool = _ActorPool(self.actors().values())
+        self._actor_pool = ActorPool(self.actors().values())
 
     def _get_actor_by_id(self, actor_id: str) -> ActorHandle:
-        if actor_id is None:
-            return None
-        for actor in self.actors().values():
-            if actor_id == actor._ray_actor_id.hex():
-                return actor
-        return None
+        return self._actor_pool.get_actor_by_id(actor_id)
 
     def execute_with_actor_pool(
         self,

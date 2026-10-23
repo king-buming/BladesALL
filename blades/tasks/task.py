@@ -1,6 +1,4 @@
-import copy
 import logging
-import threading
 from abc import abstractmethod
 from typing import TYPE_CHECKING, List, Union, Callable
 
@@ -68,7 +66,6 @@ class Task:
         self.config = trainer_config
         self.device = device
         self._model = self._init_model().to(self.device)
-        self._lock = threading.RLock()
         self._optimizers = None
         self._saved_state_dict = None
 

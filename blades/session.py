@@ -1,4 +1,11 @@
+"""Deprecated legacy session API, retained for existing external callers.
+
+Current clients use ``blades.core.execution.session.get_session(client_id)``.
+The legacy zero-argument session keeps its original initialization contract.
+"""
+
 from typing import Optional
+import warnings
 
 import ray
 import torch
@@ -8,7 +15,12 @@ from blades.constants import MAIN_ACTOR
 
 class FLSession:
     def __init__(self) -> None:
-        pass
+        warnings.warn(
+            "blades.session.FLSession is deprecated; current clients use "
+            "blades.core.execution.session.get_session(client_id).",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     @property
     def current_actor(self) -> ray.actor.ActorHandle:

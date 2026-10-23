@@ -1,4 +1,3 @@
-from typing import List
 import torch
 from blades.constants import CLIENT_UPDATE, CLIENT_ID
 from blades.trainers import Trainer as Algorithm
@@ -37,14 +36,6 @@ class SPEARSL2Adversary(Adversary):
         self.dnc_num_iters = 5    # 迭代次数
         self.dnc_filter_frac = 1.0  # 过滤比例
         self.dnc_sim_repeats = 2  # 每个候选 z 的独立模拟次数（鲁棒于子采样随机性）
-
-        # 计算 ALIE 标准 z_max（作为参考）
-        s = torch.floor_divide(self.num_clients, 2) + 1 - self.num_byzantine
-        cdf_value = (self.num_clients - self.num_byzantine - s) / (
-            self.num_clients - self.num_byzantine
-        )
-        dist = torch.distributions.normal.Normal(torch.tensor(0.0), torch.tensor(1.0))
-        self.z_max_standard = dist.icdf(torch.tensor(cdf_value))
 
     # ------------------------------------------------------------------
     # 良性统计：平均符号计数 + 每维共识模板 + 每维零频率

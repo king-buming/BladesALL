@@ -3,6 +3,7 @@ import importlib
 import json
 import os
 import sys
+import warnings
 from pathlib import Path
 from typing import Optional
 
@@ -141,7 +142,9 @@ def file(
     # Additional config arguments used for overriding.
     v: bool = cli.V,
     vv: bool = cli.VV,
-    trace: bool = cli.Trace,
+    trace: bool = typer.Option(
+        False, help="Deprecated: TF2 eager tracing is unavailable in this PyTorch trainer."
+    ),
     # WandB options.
     wandb_key: Optional[str] = cli.WandBKey,
     wandb_project: Optional[str] = cli.WandBProject,
@@ -180,9 +183,6 @@ def file(
     experiments = load_experiments_from_file(
         config_file, file_type, stop, checkpoint_config
     )
-    exp_name = list(experiments.keys())[0]
-    algo = experiments[exp_name]["run"]
-
     # WandB logging support.
     callbacks = None
     # if we had to download the config file, remove the temp file.
@@ -204,7 +204,6 @@ def file(
         resume=resume,
         scheduler=scheduler,
         scheduler_config=scheduler_config,
-        algo=algo,
         callbacks=callbacks,
         # WandB options.
         wandb_key=wandb_key,
@@ -235,7 +234,9 @@ def run(
     # Additional config arguments used for overriding.
     v: bool = cli.V,
     vv: bool = cli.VV,
-    trace: bool = cli.Trace,
+    trace: bool = typer.Option(
+        False, help="Deprecated: TF2 eager tracing is unavailable in this PyTorch trainer."
+    ),
     # Ray cluster options.
     local_mode: bool = cli.LocalMode,
     ray_address: str = cli.RayAddress,
@@ -300,7 +301,6 @@ def run(
             resume=resume,
             scheduler=scheduler,
             scheduler_config=scheduler_config,
-            algo=algo,
         )
 
 
@@ -319,7 +319,7 @@ def run_blades_experiments(
     resume: cli.Resume,
     scheduler: cli.Scheduler,
     scheduler_config: cli.SchedulerConfig,
-    algo: cli.Algo,
+    algo: Optional[str] = None,
     callbacks=None,
     # WandB options.
     wandb_key: Optional[str] = cli.WandBKey,
@@ -328,6 +328,21 @@ def run_blades_experiments(
 ):
     """Main training function for the blades, whether you've loaded your
     experiments from a config file or from command line options."""
+
+    if trace:
+        warnings.warn(
+            "--trace is deprecated and has no effect: Blades uses PyTorch, "
+            "not the TF2 eager-tracing path this option came from.",
+            FutureWarning,
+            stacklevel=2,
+        )
+    if algo is not None:
+        warnings.warn(
+            "run_blades_experiments(algo=...) is deprecated; specify each "
+            "algorithm in experiments[name]['run'] instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     # Override experiment data with command line arguments.
     verbose = 1
@@ -401,8 +416,6 @@ def run_blades_experiments(
         print("Best available checkpoint for each trial:")
         for cp in checkpoints:
             print(f"  {cp}")
-
-
 
 
 def main():

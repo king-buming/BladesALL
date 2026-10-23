@@ -9,6 +9,20 @@ from torchmetrics import MetricCollection, Metric
 from blades.tasks.task import Task
 
 
+def compile_classification_results(results):
+    """Combine the legacy classification metrics, weighted by client sample count."""
+    return {
+        "ce_loss": np.average(
+            [metric["ce_loss"] for metric in results],
+            weights=[metric["length"] for metric in results],
+        ),
+        "acc_top_1": np.average(
+            [metric["acc_top_1"].cpu() for metric in results],
+            weights=[metric["length"] for metric in results],
+        ),
+    }
+
+
 class CustomCrossEntropy(Metric):
     def __init__(self, dist_sync_on_step=False):
         super().__init__(
@@ -76,13 +90,4 @@ class Classifier(Task):
         return metrics
 
     def compile_eval_results(self, results):
-        return {
-            "ce_loss": np.average(
-                [metric["ce_loss"] for metric in results],
-                weights=[metric["length"] for metric in results],
-            ),
-            "acc_top_1": np.average(
-                [metric["acc_top_1"].cpu() for metric in results],
-                weights=[metric["length"] for metric in results],
-            ),
-        }
+        return compile_classification_results(results)

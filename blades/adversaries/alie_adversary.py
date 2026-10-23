@@ -1,11 +1,9 @@
-import random
 
 import torch
 
 from blades.constants import CLIENT_UPDATE, CLIENT_ID
 from blades.trainers import Trainer as Algorithm
 from blades.trainers import Trainer
-from blades.aggregators import Signguard
 
 from .adversary import Adversary
 
@@ -13,7 +11,7 @@ from .adversary import Adversary
 class ALIEAdversary(Adversary):
     def on_trainer_init(self, trainer: Trainer):
         super().on_trainer_init(trainer)
-        
+
         self.num_clients = trainer.config.num_clients
         num_byzantine = len(self.clients)
 
